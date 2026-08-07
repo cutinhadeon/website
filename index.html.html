@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CUT:NA — Hardgroove / Techno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b0c;
+    --bg2:#131417;
+    --panel:#17181b;
+    --ink:#eae7df;
+    --muted:#8d9093;
+    --gold:#c9a24a;
+    --gold-dim:#8a7238;
+    --teal:#4d8a8f;
+    --line: rgba(234,231,223,0.14);
+    --line-strong: rgba(234,231,223,0.28);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    overflow-x:hidden;
+  }
+  ::selection{ background:var(--gold); color:#0a0b0c; }
+
+  .grain{
+    position:fixed; inset:0; z-index:200; pointer-events:none;
+    opacity:.09; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  a{ color:inherit; text-decoration:none; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--gold);
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{
+    content:''; width:18px; height:1px; background:var(--gold);
+  }
+
+  /* NAV */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:22px 5vw;
+    mix-blend-mode:difference;
+  }
+  .logo{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:19px; letter-spacing:.02em;
+  }
+  .navlinks{
+    display:flex; gap:28px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  }
+  .navlinks a{ opacity:.7; transition:opacity .2s; }
+  .navlinks a:hover{ opacity:1; }
+  @media(max-width:640px){ .navlinks{ gap:16px; font-size:9px; } }
+
+  /* HERO */
+  .hero{
+    position:relative;
+    min-height:92vh;
+    display:flex; flex-direction:column; justify-content:flex-end;
+    background:#000;
+    overflow:hidden;
+  }
+  .hero-fade{
+    position:absolute; inset:0;
+    background:
+      linear-gradient(180deg, rgba(10,11,12,.4) 0%, rgba(10,11,12,.08) 30%, rgba(10,11,12,.42) 68%, var(--bg) 100%),
+      linear-gradient(90deg, rgba(10,11,12,.6) 0%, transparent 35%, transparent 65%, rgba(10,11,12,.6) 100%);
+  }
+  canvas#net{ position:absolute; inset:0; width:100%; height:100%; }
+
+  .readout{
+    position:absolute;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:.06em;
+    color:rgba(234,231,223,.75);
+    white-space:nowrap;
+    pointer-events:none;
+  }
+  .readout span{ color:var(--gold); }
+
+  .hero-content{
+    position:relative; z-index:5;
+    padding:0 5vw 56px;
+  }
+  .hero-kicker{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:.3em; text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:14px;
+  }
+  .hero-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(56px, 13vw, 160px);
+    line-height:.9;
+    letter-spacing:-.01em;
+    color:var(--ink);
+  }
+  .hero-sub{
+    margin-top:16px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:500;
+    font-size:clamp(13px,1.6vw,17px);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  .scroll-cue{
+    position:absolute; bottom:26px; right:5vw; z-index:5;
+    font-family:'JetBrains Mono', monospace; font-size:10px;
+    letter-spacing:.2em; color:var(--muted);
+    writing-mode:vertical-rl;
+    display:flex; align-items:center; gap:10px;
+  }
+  .scroll-cue::after{ content:''; width:1px; height:40px; background:var(--line-strong); }
+
+  /* SECTIONS */
+  section{ padding:100px 5vw; position:relative; }
+  .section-head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-bottom:48px; gap:24px; flex-wrap:wrap;
+  }
+  .section-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(30px, 4.4vw, 50px);
+    letter-spacing:-.01em;
+    margin-top:8px;
+  }
+  .section-note{
+    font-family:'JetBrains Mono', monospace; font-size:11px;
+    color:var(--muted); max-width:280px; line-height:1.6;
+  }
+
+  /* FEATURED RELEASE (latest) */
+  .featured{
+    padding-top:80px;
+    padding-bottom:60px;
+  }
+  .featured-card{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:56px;
+    border:1px solid var(--line-strong);
+    padding:40px;
+    align-items:center;
+    position:relative;
+  }
+  @media(max-width:820px){ .featured-card{ grid-template-columns:1fr; padding:28px; gap:32px; } }
+  .featured-art{
+    width:100%; aspect-ratio:1/1; overflow:hidden; position:relative;
+  }
+  .featured-art img{ width:100%; height:100%; object-fit:cover; }
+  .featured-body .pulse-row{ display:flex; align-items:center; gap:10px; margin-bottom:18px; }
+  .featured-body .label{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.2em; color:var(--gold); text-transform:uppercase; }
+  .featured-title{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:clamp(30px,4vw,52px); letter-spacing:-.01em; margin-bottom:10px;
+  }
+  .featured-meta{
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted);
+    letter-spacing:.08em; margin-bottom:28px;
+  }
+  .btn-row{ display:flex; flex-wrap:wrap; gap:14px; }
+  @media(max-width:640px){
+    .btn-row{ flex-direction:column; }
+    .btn-row .btn{ width:100%; justify-content:center; }
+  }
+  .btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+    padding:14px 24px;
+    display:inline-flex; align-items:center; gap:10px;
+    transition:.25s;
+    white-space:nowrap;
+    border:1px solid var(--line-strong);
+    cursor:pointer;
+    background:none;
+    color:var(--ink);
+  }
+  .btn:hover{ background:var(--gold); border-color:var(--gold); color:#0a0b0c; }
+  .btn:hover svg path{ fill:#0a0b0c; }
+  .btn-fill{ background:var(--gold); border-color:var(--gold); color:#0a0b0c; }
+  .btn-fill:hover{ background:transparent; color:var(--gold); }
+  .btn-fill:hover svg path{ fill:var(--gold); }
+
+  .pulse{
+    width:8px; height:8px; border-radius:50%; background:var(--gold);
+    box-shadow:0 0 0 0 rgba(201,162,74,.6);
+    animation:pulse 2s infinite;
+    flex-shrink:0;
+  }
+  @keyframes pulse{
+    0%{ box-shadow:0 0 0 0 rgba(201,162,74,.55); }
+    70%{ box-shadow:0 0 0 10px rgba(201,162,74,0); }
+    100%{ box-shadow:0 0 0 0 rgba(201,162,74,0); }
+  }
+
+  /* MODAL */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(10,11,12,.82);
+    display:none; align-items:center; justify-content:center; z-index:300;
+    padding:24px;
+  }
+  .modal-backdrop.open{ display:flex; }
+  .modal{
+    background:var(--bg2); border:1px solid var(--line-strong);
+    max-width:420px; width:100%; padding:36px;
+  }
+  .modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+  .modal-title{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:20px; }
+  .modal-close{ cursor:pointer; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted); background:none; border:none; }
+  .modal-close:hover{ color:var(--ink); }
+  .platform-link{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:16px 0; border-top:1px solid var(--line);
+    font-family:'IBM Plex Sans', sans-serif; font-weight:500; font-size:14px;
+    transition:.2s;
+  }
+  .platform-link:hover{ color:var(--gold); }
+  .platform-link .mono{ font-size:10px; color:var(--muted); letter-spacing:.1em; }
+  .platform-link.disabled{ opacity:.4; cursor:default; pointer-events:none; }
+
+  /* INCOMING */
+  .incoming-card{
+    border:1px solid var(--line-strong);
+    padding:40px;
+    display:grid;
+    grid-template-columns:220px 1fr;
+    gap:40px;
+    align-items:center;
+    position:relative;
+  }
+  @media(max-width:820px){ .incoming-card{ grid-template-columns:1fr; padding:28px; gap:28px; } }
+  .incoming-art{ width:100%; aspect-ratio:1/1; overflow:hidden; filter:grayscale(.15) contrast(1.1); }
+  .incoming-art img{ width:100%; height:100%; object-fit:cover; }
+  .incoming-body{
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:24px; width:100%;
+  }
+  .incoming-left .mono{ font-size:10px; letter-spacing:.2em; color:var(--muted); }
+  .incoming-title{
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:clamp(24px,3.6vw,40px);
+    margin-top:10px; color:var(--ink); letter-spacing:-.01em;
+  }
+  .incoming-sig{ display:flex; align-items:center; gap:12px; }
+  .incoming-sig .pulse{ width:10px; height:10px; }
+  .incoming-sig-text{ font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em; color:var(--gold); text-transform:uppercase; }
+
+  /* DISCOGRAPHY */
+  .disco-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+  }
+  @media(max-width:820px){ .disco-grid{ grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:520px){ .disco-grid{ grid-template-columns:1fr; } }
+  .track-card{
+    background:var(--bg);
+    position:relative;
+    display:block;
+    overflow:hidden;
+  }
+  .track-art-wrap{ position:relative; aspect-ratio:1/1; overflow:hidden; }
+  .track-art{
+    width:100%; height:100%; object-fit:cover;
+    filter:grayscale(.5) contrast(1.05);
+    transition:filter .5s, transform .6s;
+  }
+  .track-card:hover .track-art{ filter:grayscale(0) contrast(1.1); transform:scale(1.04); }
+  .track-overlay{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, transparent 40%, rgba(10,11,12,.9) 100%);
+    display:flex; align-items:flex-end; padding:16px;
+    opacity:0; transition:opacity .4s;
+  }
+  .track-card:hover .track-overlay{ opacity:1; }
+  .track-overlay .mono{ font-size:10px; letter-spacing:.15em; color:var(--gold); }
+  .track-meta{ padding:16px; }
+  .track-num{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--muted); }
+  .track-name{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px; margin-top:6px; }
+  .track-year{ font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--muted); margin-top:4px; }
+
+  /* SETS */
+  .sets-grid{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line);
+  }
+  @media(max-width:820px){ .sets-grid{ grid-template-columns:1fr; } }
+  .set-card{
+    background:var(--bg2);
+    padding:32px 26px;
+    min-height:220px;
+    display:flex; flex-direction:column; justify-content:space-between;
+    border:1px dashed transparent;
+  }
+  .set-card.placeholder{ border-color:var(--line-strong); }
+  .set-top .mono{ font-size:10px; letter-spacing:.15em; color:var(--muted); }
+  .set-name{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:19px; margin-top:10px; }
+  .set-status{
+    display:flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace; font-size:10px;
+    letter-spacing:.15em; text-transform:uppercase; color:var(--gold-dim);
+    margin-top:20px;
+  }
+  .dot{ width:6px; height:6px; border-radius:50%; background:var(--gold-dim); }
+  .sets-footnote{
+    margin-top:26px; font-family:'JetBrains Mono', monospace; font-size:11px;
+    color:var(--muted); line-height:1.7; max-width:560px;
+  }
+
+  /* FOOTER */
+  footer{
+    padding:70px 5vw 40px;
+    border-top:1px solid var(--line);
+  }
+  .footer-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    flex-wrap:wrap; gap:40px; margin-bottom:60px;
+  }
+  .footer-logo{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:40px; }
+  .footer-tag{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted); margin-top:10px; letter-spacing:.1em; }
+  .footer-links{ display:flex; gap:40px; flex-wrap:wrap; }
+  .footer-col .mono{ font-size:10px; color:var(--muted); letter-spacing:.15em; margin-bottom:14px; display:block; }
+  .footer-col a{
+    display:block; font-family:'IBM Plex Sans', sans-serif; font-weight:500; font-size:14px;
+    margin-bottom:10px; color:var(--ink); opacity:.8; transition:.2s;
+  }
+  .footer-col a:hover{ opacity:1; color:var(--gold); }
+  .footer-bottom{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--muted);
+    letter-spacing:.08em;
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<nav>
+  <div class="logo">CUT:NA</div>
+  <div class="navlinks">
+    <a href="#sets">Sets</a>
+    <a href="#incoming">Incoming</a>
+    <a href="contact.html">Services</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <canvas id="net"></canvas>
+  <div class="hero-fade"></div>
+
+  <div class="readout" style="top:14%; left:6%;">BPM <span>145</span></div>
+  <div class="readout" style="top:20%; left:6%;">KEY <span>F MIN</span></div>
+  <div class="readout" style="top:10%; right:8%;">SIG <span>4/4</span></div>
+  <div class="readout" style="top:34%; right:12%;">REL <span>2026.08.07</span></div>
+  <div class="readout" style="bottom:44%; left:9%;">GENRE <span>HARDGROOVE</span></div>
+  <div class="readout" style="top:48%; right:6%;">LABEL <span>SELF</span></div>
+
+  <div class="scroll-cue">SCROLL</div>
+
+  <div class="hero-content">
+    <div class="hero-kicker">Hardgroove / Techno — Berlin</div>
+    <h1 class="hero-title">CUT:NA</h1>
+    <p class="hero-sub">Hardwired for techno.</p>
+  </div>
+</section>
+
+<section class="featured" id="latest">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Latest release</div>
+      <h2 class="section-title">Now Playing</h2>
+    </div>
+    <p class="section-note">The newest transmission. Stream it, check every platform, or buy the record directly.</p>
+  </div>
+
+  <div class="featured-card">
+    <div class="featured-art">
+      <img src="https://i.scdn.co/image/ab67616d00001e02aafbe1ac19fdf2ab3c827a4b" alt="Cross Pollination cover art">
+    </div>
+    <div class="featured-body">
+      <div class="pulse-row">
+        <div class="pulse"></div>
+        <div class="label">Out Now</div>
+      </div>
+      <div class="featured-title">Cross Pollination</div>
+      <div class="featured-meta">2026 · SINGLE · 6:24 · F MIN · 132 BPM</div>
+      <div class="btn-row">
+        <a class="btn btn-fill" href="https://open.spotify.com/track/0x2fKYIAnhc8dWikNCV0so" target="_blank" rel="noopener">
+          Listen on Spotify
+        </a>
+        <a class="btn" href="https://music.apple.com/us/song/cross-pollination/6793159316" target="_blank" rel="noopener">
+          Listen on Apple Music
+        </a>
+        <button class="btn" onclick="document.getElementById('platformModal').classList.add('open')">
+          View Other Platforms
+        </button>
+        <a class="btn" href="https://cutna.bandcamp.com/track/cross-pollination" target="_blank" rel="noopener">
+          Buy on Bandcamp
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal-backdrop" id="platformModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">More Ways to Listen</div>
+      <button class="modal-close" onclick="document.getElementById('platformModal').classList.remove('open')">CLOSE ✕</button>
+    </div>
+    <a class="platform-link disabled" href="#">
+      YouTube Music <span class="mono">SOON</span>
+    </a>
+    <a class="platform-link disabled" href="#">
+      Beatport <span class="mono">SOON</span>
+    </a>
+    <a class="platform-link disabled" href="#">
+      SoundCloud <span class="mono">SOON</span>
+    </a>
+  </div>
+</div>
+
+<section id="incoming">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Next release</div>
+      <h2 class="section-title">Incoming</h2>
+    </div>
+  </div>
+
+  <div class="incoming-card">
+    <div class="incoming-art">
+      <img src="https://distrokid.imgix.net/http%3A%2F%2Fgather.fandalism.com%2F4347814--30370553-AD1C-43E7-B26F9EA508646219--0--927198--95AD0E209EDE4692BB28FC4565989A4A.jpeg?fm=jpg&q=75&w=800&s=ca7ac1e8e28c6055b0d1b73ddbb96861" alt="Mother Flower cover art">
+    </div>
+    <div class="incoming-body">
+      <div class="incoming-left">
+        <div class="mono">NEXT TRANSMISSION</div>
+        <div class="incoming-title">Mother Flower</div>
+        <div class="incoming-sig" style="margin-top:18px;">
+          <div class="pulse"></div>
+          <div class="incoming-sig-text">Out August 21, 2026</div>
+        </div>
+      </div>
+      <a class="btn btn-fill" href="https://distrokid.com/hyperfollow/cutna/mother-flower" target="_blank" rel="noopener">Pre-Save</a>
+    </div>
+  </div>
+</section>
+
+<section id="sets">
+  <div class="section-head">
+    <div>
+      <div class="eyebrow">Recorded transmissions</div>
+      <h2 class="section-title">Sets</h2>
+    </div>
+    <p class="section-note">A recorded set, playable right here. More coming as they're recorded.</p>
+  </div>
+
+  <div class="set-card" style="border:1px solid var(--line-strong); max-width:640px;">
+    <div class="set-top">
+      <div class="mono">SET 01 · GUEST MIX</div>
+      <div class="set-name">Nacht FM EP001</div>
+    </div>
+    <div style="margin-top:20px; border:1px solid var(--line);">
+      <iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay"
+        src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/berlinxnacht/nacht-fm-ep001&color=%23c9a24a&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false">
+      </iframe>
+    </div>
+    <a class="set-status" href="https://soundcloud.com/berlinxnacht/nacht-fm-ep001" target="_blank" rel="noopener" style="margin-top:18px; color:var(--gold-dim);">
+      <span class="dot" style="background:var(--gold);"></span>OPEN ON SOUNDCLOUD →
+    </a>
+  </div>
+
+  <p class="sets-footnote">// One transmission logged so far. Send over more SoundCloud or YouTube links as they're recorded and they'll be added here.</p>
+</section>
+
+<footer id="contact">
+  <div class="footer-top">
+    <div>
+      <div class="footer-logo">CUT:NA</div>
+      <div class="footer-tag">HARDGROOVE / TECHNO — SELF-RELEASED</div>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <span class="mono">LISTEN</span>
+        <a href="https://open.spotify.com/artist/0IHnjn3dha755rBxlcPMSt" target="_blank" rel="noopener">Spotify</a>
+        <a href="#" target="_blank" rel="noopener">SoundCloud</a>
+        <a href="https://cutna.bandcamp.com" target="_blank" rel="noopener">Bandcamp</a>
+      </div>
+      <div class="footer-col">
+        <span class="mono">CONNECT</span>
+        <a href="https://instagram.com/deoncutinha" target="_blank" rel="noopener">Instagram</a>
+        <a href="mailto:cutinhamusic@gmail.com">Booking</a>
+      </div>
+      <div class="footer-col">
+        <span class="mono">SITE</span>
+        <a href="#latest">Latest</a>
+        <a href="#sets">Sets</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 CUT:NA. ALL SIGNALS RESERVED.</span>
+    <span>40.72, 40.24 — TRANSMITTING FROM EARTH</span>
+  </div>
+</footer>
+
+<script>
+  const canvas = document.getElementById('net');
+  const ctx = canvas.getContext('2d');
+  let w, h, nodes = [];
+  const NODE_COUNT_BASE = 3200;
+
+  function resize(){
+    w = canvas.width = canvas.offsetWidth * devicePixelRatio;
+    h = canvas.height = canvas.offsetHeight * devicePixelRatio;
+    const count = Math.max(18, Math.min(46, Math.floor((canvas.offsetWidth*canvas.offsetHeight)/NODE_COUNT_BASE/40)));
+    nodes = Array.from({length: count}, () => ({
+      x: Math.random()*w,
+      y: Math.random()*h*0.7 + h*0.05,
+      vx: (Math.random()-0.5)*0.15*devicePixelRatio,
+      vy: (Math.random()-0.5)*0.15*devicePixelRatio,
+      r: Math.random()*1.6 + 0.6
+    }));
+  }
+
+  let mouse = {x: -9999, y: -9999};
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - rect.left) * devicePixelRatio;
+    mouse.y = (e.clientY - rect.top) * devicePixelRatio;
+  });
+  canvas.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    const maxDist = 170 * devicePixelRatio;
+
+    if(!prefersReduced){
+      nodes.forEach(n => {
+        n.x += n.vx; n.y += n.vy;
+        if(n.x < 0 || n.x > w) n.vx *= -1;
+        if(n.y < 0 || n.y > h*0.75) n.vy *= -1;
+      });
+    }
+
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const a = nodes[i], b = nodes[j];
+        const dx = a.x-b.x, dy = a.y-b.y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist < maxDist){
+          const op = (1 - dist/maxDist) * 0.55;
+          ctx.strokeStyle = `rgba(201,162,74,${op})`;
+          ctx.lineWidth = 1.1;
+          ctx.beginPath();
+          ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+          ctx.stroke();
+        }
+      }
+      const dxm = nodes[i].x - mouse.x, dym = nodes[i].y - mouse.y;
+      const dm = Math.sqrt(dxm*dxm + dym*dym);
+      if(dm < maxDist*1.3){
+        ctx.strokeStyle = `rgba(234,231,223,${(1-dm/(maxDist*1.3))*0.4})`;
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(mouse.x, mouse.y);
+        ctx.stroke();
+      }
+    }
+
+    nodes.forEach(n => {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r*1.3*devicePixelRatio, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(234,231,223,0.9)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  draw();
+</script>
+
+</body>
+</html>
