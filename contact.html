@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mixing & Mastering — CUT:NA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0b0c; --bg2:#131417; --panel:#17181b; --ink:#eae7df; --muted:#8d9093;
+    --gold:#c9a24a; --gold-dim:#8a7238; --teal:#4d8a8f;
+    --line: rgba(234,231,223,0.14); --line-strong: rgba(234,231,223,0.28);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{ background:var(--bg); color:var(--ink); font-family:'IBM Plex Sans', sans-serif; overflow-x:hidden; }
+  ::selection{ background:var(--gold); color:#0a0b0c; }
+  a{ color:inherit; text-decoration:none; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  .grain{
+    position:fixed; inset:0; z-index:200; pointer-events:none;
+    opacity:.09; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--gold); display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{ content:''; width:18px; height:1px; background:var(--gold); }
+
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:22px 5vw; mix-blend-mode:difference;
+  }
+  .logo{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:19px; letter-spacing:.02em; }
+  .navlinks{ display:flex; gap:28px; font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; }
+  .navlinks a{ opacity:.7; transition:opacity .2s; }
+  .navlinks a:hover{ opacity:1; }
+  @media(max-width:640px){ .navlinks{ gap:16px; font-size:9px; } }
+
+  .page-hero{ padding:160px 5vw 60px; border-bottom:1px solid var(--line); position:relative; overflow:hidden; }
+  canvas#net{ position:absolute; inset:0; width:100%; height:100%; z-index:0; }
+  .page-hero > *{ position:relative; z-index:2; }
+  .page-title{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:clamp(40px, 7vw, 84px); letter-spacing:-.01em; line-height:.95; margin-top:14px;
+  }
+  .page-sub{
+    margin-top:22px; max-width:560px; color:var(--muted);
+    font-size:16px; line-height:1.7;
+  }
+
+  .rates{
+    display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line); margin-top:48px;
+  }
+  @media(max-width:760px){ .rates{ grid-template-columns:1fr; } }
+  .rate-card{ background:var(--bg); padding:28px; display:flex; flex-direction:column; }
+  .rate-card .mono{ font-size:10px; color:var(--muted); letter-spacing:.15em; }
+  .rate-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:18px; margin-top:10px; }
+  .rate-desc{ font-size:13px; color:var(--muted); margin-top:10px; line-height:1.6; }
+  .rate-price{
+    margin-top:auto; padding-top:16px; border-top:1px solid var(--line);
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:22px; color:var(--gold);
+  }
+  .rate-price span{
+    font-family:'JetBrains Mono', monospace; font-weight:400; font-size:11px;
+    color:var(--muted); letter-spacing:.08em; text-transform:uppercase;
+  }
+
+  .payment-section{ padding:70px 5vw; border-bottom:1px solid var(--line); max-width:720px; }
+  .payment-body{ margin-top:24px; display:flex; flex-direction:column; gap:16px; }
+  .payment-row{ display:flex; gap:18px; align-items:flex-start; }
+  .payment-mark{
+    width:20px; height:20px; border:1px solid var(--gold); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--gold); margin-top:2px;
+  }
+  .payment-row p{ font-size:14px; color:var(--ink); line-height:1.6; }
+  .payment-row p span{ color:var(--muted); }
+
+  .delivery-section{ padding:70px 5vw; border-bottom:1px solid var(--line); max-width:720px; }
+  .delivery-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); margin-top:32px; }
+  @media(max-width:640px){ .delivery-grid{ grid-template-columns:1fr; } }
+  .delivery-card{ background:var(--bg); padding:24px; }
+  .delivery-card .mono{ font-size:10px; color:var(--muted); letter-spacing:.15em; }
+  .delivery-value{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:24px; color:var(--gold); margin-top:12px; }
+  .delivery-label{ font-family:'IBM Plex Sans', sans-serif; font-size:13px; color:var(--muted); margin-top:8px; line-height:1.5; }
+
+  .checklist-section{ padding:70px 5vw; border-bottom:1px solid var(--line); max-width:720px; }
+  .checklist{ display:flex; flex-direction:column; margin-top:8px; }
+  .check-item{
+    display:flex; gap:18px; align-items:flex-start;
+    padding:20px 0; border-top:1px solid var(--line);
+  }
+  .check-item:last-child{ border-bottom:1px solid var(--line); }
+  .check-mark{
+    width:20px; height:20px; border:1px solid var(--gold); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--gold);
+    margin-top:2px;
+  }
+  .check-body .check-title{
+    font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:15px;
+  }
+  .check-body .check-desc{
+    font-size:13px; color:var(--muted); margin-top:6px; line-height:1.6;
+  }
+
+  section.form-section{ padding:90px 5vw 90px; max-width:720px; }
+  .section-title{
+    font-family:'Space Grotesk', sans-serif; font-weight:700;
+    font-size:clamp(28px,4vw,42px); letter-spacing:-.01em; margin-top:8px; margin-bottom:40px;
+  }
+
+  form{ display:flex; flex-direction:column; gap:24px; }
+  .field{ display:flex; flex-direction:column; gap:8px; }
+  .field label{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.15em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  .field input, .field select, .field textarea{
+    background:var(--bg2); border:1px solid var(--line-strong); color:var(--ink);
+    padding:14px 16px; font-family:'IBM Plex Sans', sans-serif; font-size:14px;
+    outline:none; transition:.2s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{ border-color:var(--gold); }
+  .field textarea{ resize:vertical; min-height:120px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  @media(max-width:600px){ .row2{ grid-template-columns:1fr; } }
+
+  .portal-box{
+    border:1px solid var(--line-strong); background:var(--bg2); padding:24px;
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .portal-box .mono{ font-size:10px; letter-spacing:.15em; color:var(--muted); text-transform:uppercase; }
+  .portal-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:16px; }
+  .portal-desc{ font-size:13px; color:var(--muted); line-height:1.6; }
+  .btn-outline{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; padding:14px 24px; display:inline-flex; align-items:center;
+    justify-content:center; gap:10px; transition:.25s; white-space:nowrap;
+    border:1px solid var(--gold); color:var(--gold); background:none;
+    cursor:pointer; align-self:flex-start;
+  }
+  .btn-outline:hover{ background:var(--gold); color:#0a0b0c; }
+
+  .terms-row{ display:flex; gap:12px; align-items:flex-start; }
+  .terms-row input[type="checkbox"]{
+    width:18px; height:18px; margin-top:2px; accent-color:var(--gold); flex-shrink:0; cursor:pointer;
+  }
+  .terms-row label{
+    font-family:'IBM Plex Sans', sans-serif; font-size:13px; color:var(--muted); line-height:1.6; cursor:pointer;
+  }
+  .terms-row label a{ color:var(--gold); text-decoration:underline; }
+
+  .btn{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.14em;
+    text-transform:uppercase; padding:16px 28px; display:inline-flex; align-items:center;
+    justify-content:center; gap:10px; transition:.25s; white-space:nowrap;
+    border:1px solid var(--gold); background:var(--gold); color:#0a0b0c;
+    cursor:pointer; align-self:flex-start;
+  }
+  .btn:hover{ background:transparent; color:var(--gold); }
+  .form-note{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--muted); line-height:1.7; }
+
+  footer{ padding:60px 5vw 40px; border-top:1px solid var(--line); }
+  .footer-bottom{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    font-family:'JetBrains Mono', monospace; font-size:10px; color:var(--muted); letter-spacing:.08em;
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<nav>
+  <a class="logo" href="index.html">CUT:NA</a>
+  <div class="navlinks">
+    <a href="index.html#latest">Latest</a>
+    <a href="index.html#sets">Sets</a>
+    <a href="contact.html">Services</a>
+  </div>
+</nav>
+
+<section class="page-hero">
+  <canvas id="net"></canvas>
+  <div class="eyebrow">Mixing &amp; Mastering</div>
+  <h1 class="page-title">Get Your Track<br>Club-Ready.</h1>
+  <p class="page-sub">Mixing and mastering for hardgroove, techno, and adjacent electronic music. Same ear that shapes CUT:NA releases, applied to your record.</p>
+
+  <div class="rates">
+    <div class="rate-card">
+      <div class="mono">SERVICE 01</div>
+      <div class="rate-title">Mixing</div>
+      <div class="rate-desc">Balance, space, and low-end control built for a club system, not just headphones.</div>
+      <div class="rate-price">€30 <span>/ track</span></div>
+    </div>
+    <div class="rate-card">
+      <div class="mono">SERVICE 02</div>
+      <div class="rate-title">Mastering</div>
+      <div class="rate-desc">Loudness and translation across Spotify, Beatport, and the DJ booth.</div>
+      <div class="rate-price">€20 <span>/ track</span></div>
+    </div>
+    <div class="rate-card">
+      <div class="mono">SERVICE 03</div>
+      <div class="rate-title">Mix + Master</div>
+      <div class="rate-desc">Full signal chain from rough stems to a finished, release-ready master.</div>
+      <div class="rate-price">€50 <span>/ track</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="payment-section">
+  <div class="eyebrow">Payment</div>
+  <h2 class="section-title" style="margin-bottom:8px;">How Payment Works</h2>
+  <p class="page-sub" style="margin-top:0;">Simple, upfront, no surprises.</p>
+
+  <div class="payment-body">
+    <div class="payment-row">
+      <div class="payment-mark">1</div>
+      <p><span>50% advance</span> — due before work starts. Sent once the service and price are agreed.</p>
+    </div>
+    <div class="payment-row">
+      <div class="payment-mark">2</div>
+      <p><span>50% balance</span> — due on delivery of the first draft, before further revisions begin.</p>
+    </div>
+    <div class="payment-row">
+      <div class="payment-mark">3</div>
+      <p><span>No advance, no start</span> — work begins only once the advance is received.</p>
+    </div>
+  </div>
+</section>
+
+<section class="delivery-section">
+  <div class="eyebrow">Turnaround</div>
+  <h2 class="section-title" style="margin-bottom:8px;">Delivery &amp; Revisions</h2>
+  <p class="page-sub" style="margin-top:0;">What to expect after you send your stems.</p>
+
+  <div class="delivery-grid">
+    <div class="delivery-card">
+      <div class="mono">FIRST DRAFT</div>
+      <div class="delivery-value">3–5 days</div>
+      <div class="delivery-label">From when stems and details are received.</div>
+    </div>
+    <div class="delivery-card">
+      <div class="mono">1ST REVISION</div>
+      <div class="delivery-value">Free</div>
+      <div class="delivery-label">One round of changes included with every session.</div>
+    </div>
+    <div class="delivery-card">
+      <div class="mono">ADDITIONAL</div>
+      <div class="delivery-value">+€10</div>
+      <div class="delivery-label">Per extra revision round after the first.</div>
+    </div>
+  </div>
+</section>
+
+<section class="checklist-section">
+  <div class="eyebrow">Before you send stems</div>
+  <h2 class="section-title" style="margin-bottom:8px;">Stem Prep Checklist</h2>
+  <p class="page-sub" style="margin-top:0;">Cleaner stems mean faster turnaround and a better result. Run through this before uploading.</p>
+
+  <div class="checklist">
+    <div class="check-item">
+      <div class="check-mark">✓</div>
+      <div class="check-body">
+        <div class="check-title">Export as WAV, 24-bit</div>
+        <div class="check-desc">Same sample rate as your session. No MP3s or compressed formats.</div>
+      </div>
+    </div>
+    <div class="check-item">
+      <div class="check-mark">✓</div>
+      <div class="check-body">
+        <div class="check-title">Align every stem to the same start point</div>
+        <div class="check-desc">Bounce from bar 1 with no trimmed silence, so everything lines up automatically on import.</div>
+      </div>
+    </div>
+    <div class="check-item">
+      <div class="check-mark">✓</div>
+      <div class="check-body">
+        <div class="check-title">No processing on the master bus</div>
+        <div class="check-desc">Remove any limiter, EQ, or compression on the main output. Send stems dry, before that stage.</div>
+      </div>
+    </div>
+    <div class="check-item">
+      <div class="check-mark">✓</div>
+      <div class="check-body">
+        <div class="check-title">Leave headroom</div>
+        <div class="check-desc">Peaks around -6dB on individual stems. Nothing should be clipping.</div>
+      </div>
+    </div>
+    <div class="check-item">
+      <div class="check-mark">✓</div>
+      <div class="check-body">
+        <div class="check-title">Label files clearly</div>
+        <div class="check-desc">Kick, bass, lead, perc, vocal, etc. Not "Track 1," "Track 2."</div>
+      </div>
+    </div>
+    <div class="check-item">
+      <div class="check-mark">✓</div>
+      <div class="check-body">
+        <div class="check-title">Include a rough mix and BPM/key</div>
+        <div class="check-desc">A reference bounce of how you imagined it, plus tempo and key, saves a lot of back and forth.</div>
+      </div>
+    </div>
+    <div class="check-item">
+      <div class="check-mark">✓</div>
+      <div class="check-body">
+        <div class="check-title">Send via a file transfer link</div>
+        <div class="check-desc">WeTransfer, Google Drive, or Dropbox. Drop the link in the form below.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="form-section">
+  <div class="eyebrow">Request a session</div>
+  <h2 class="section-title">Tell Me About the Track</h2>
+
+  <form id="serviceForm">
+    <div class="row2">
+      <div class="field">
+        <label for="name">Name</label>
+        <input type="text" id="name" required>
+      </div>
+      <div class="field">
+        <label for="email">Email</label>
+        <input type="email" id="email" required>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="service">Service</label>
+      <select id="service">
+        <option value="Mixing (€30/track)">Mixing — €30/track</option>
+        <option value="Mastering (€20/track)">Mastering — €20/track</option>
+        <option value="Mix + Master (€50/track)">Mix + Master — €50/track</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="link">Track link (SoundCloud / Drive / Dropbox)</label>
+      <input type="url" id="link" placeholder="https://">
+    </div>
+
+    <div class="field">
+      <label for="message">Project details</label>
+      <textarea id="message" placeholder="Genre, reference tracks, deadline, anything I should know..."></textarea>
+    </div>
+
+    <div class="portal-box">
+      <div class="mono">Step — Pay Advance</div>
+      <div class="portal-title">Pay Your 50% Advance</div>
+      <div class="portal-desc">Secure payment via Stripe. Complete this first — work begins once the advance is received.</div>
+      <a class="btn-outline" href="#" target="_blank" rel="noopener">Pay via Stripe →</a>
+    </div>
+
+    <div class="terms-row">
+      <input type="checkbox" id="terms" required>
+      <label for="terms">I agree that a 50% advance is due before work begins, the remaining 50% is due on delivery of the first draft, and that work will not start until the advance is received.</label>
+    </div>
+
+    <button type="submit" class="btn">Send Request</button>
+    <p class="form-note">// Submitting opens your email client with these details pre-filled, sent directly to CUT:NA.</p>
+  </form>
+</section>
+
+<footer>
+  <div class="footer-bottom">
+    <span>© 2026 CUT:NA. ALL SIGNALS RESERVED.</span>
+    <span><a href="index.html">← Back to CUT:NA</a></span>
+  </div>
+</footer>
+
+<script>
+  const canvas = document.getElementById('net');
+  const ctx = canvas.getContext('2d');
+  let w, h, nodes = [];
+  const NODE_COUNT_BASE = 3200;
+
+  function resize(){
+    const rect = canvas.parentElement.getBoundingClientRect();
+    w = canvas.width = rect.width * devicePixelRatio;
+    h = canvas.height = rect.height * devicePixelRatio;
+    const count = Math.max(14, Math.min(36, Math.floor((rect.width*rect.height)/NODE_COUNT_BASE/40)));
+    nodes = Array.from({length: count}, () => ({
+      x: Math.random()*w,
+      y: Math.random()*h,
+      vx: (Math.random()-0.5)*0.15*devicePixelRatio,
+      vy: (Math.random()-0.5)*0.15*devicePixelRatio,
+      r: Math.random()*1.6 + 0.6
+    }));
+  }
+
+  let mouse = {x: -9999, y: -9999};
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    mouse.x = (e.clientX - rect.left) * devicePixelRatio;
+    mouse.y = (e.clientY - rect.top) * devicePixelRatio;
+  });
+  canvas.addEventListener('mouseleave', () => { mouse.x = -9999; mouse.y = -9999; });
+
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function draw(){
+    ctx.clearRect(0,0,w,h);
+    const maxDist = 170 * devicePixelRatio;
+
+    if(!prefersReduced){
+      nodes.forEach(n => {
+        n.x += n.vx; n.y += n.vy;
+        if(n.x < 0 || n.x > w) n.vx *= -1;
+        if(n.y < 0 || n.y > h) n.vy *= -1;
+      });
+    }
+
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        const a = nodes[i], b = nodes[j];
+        const dx = a.x-b.x, dy = a.y-b.y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if(dist < maxDist){
+          const op = (1 - dist/maxDist) * 0.55;
+          ctx.strokeStyle = `rgba(201,162,74,${op})`;
+          ctx.lineWidth = 1.1;
+          ctx.beginPath();
+          ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+          ctx.stroke();
+        }
+      }
+      const dxm = nodes[i].x - mouse.x, dym = nodes[i].y - mouse.y;
+      const dm = Math.sqrt(dxm*dxm + dym*dym);
+      if(dm < maxDist*1.3){
+        ctx.strokeStyle = `rgba(234,231,223,${(1-dm/(maxDist*1.3))*0.4})`;
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].x, nodes[i].y); ctx.lineTo(mouse.x, mouse.y);
+        ctx.stroke();
+      }
+    }
+
+    nodes.forEach(n => {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r*1.3*devicePixelRatio, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(234,231,223,0.9)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  window.addEventListener('resize', resize);
+  draw();
+</script>
+
+<script>
+  document.getElementById('serviceForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const terms = document.getElementById('terms').checked;
+    if(!terms){
+      alert('Please agree to the payment terms before sending your request.');
+      return;
+    }
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const service = document.getElementById('service').value;
+    const link = document.getElementById('link').value;
+    const message = document.getElementById('message').value;
+
+    const subject = encodeURIComponent(`${service} Request — ${name}`);
+    const body = encodeURIComponent(
+      `Name: ${name}\nEmail: ${email}\nService: ${service}\nTrack link: ${link}\n\nDetails:\n${message}\n\nAgreed to payment terms (50% advance before work, 50% on delivery): Yes`
+    );
+    window.location.href = `mailto:booking@cutna.com?subject=${subject}&body=${body}`;
+  });
+</script>
+
+</body>
+</html>
