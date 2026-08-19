@@ -91,9 +91,12 @@
     font-family:'JetBrains Mono', monospace;
     font-size:11px; letter-spacing:.14em; text-transform:uppercase;
   }
-  .navlinks a{ opacity:.7; transition:opacity .2s; }
+  .navlinks a{ opacity:.7; transition:opacity .2s; padding:6px 2px; }
   .navlinks a:hover{ opacity:1; }
-  @media(max-width:640px){ .navlinks{ gap:16px; font-size:9px; } }
+  @media(max-width:640px){
+    .navlinks{ gap:14px; font-size:10px; }
+    .navlinks a{ padding:10px 4px; }
+  }
 
   /* HERO */
   .hero{
